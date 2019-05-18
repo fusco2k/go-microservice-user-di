@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"gopkg.in/mgo.v2/bson"
 )
 
 //User basic structure
@@ -24,8 +24,6 @@ func AllUsers(cl *mongo.Collection) []User {
 	var Users []User
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//cancel de ctx, all jobs done
-	defer cancel()
 	//gets the cursos with data
 	cursor, err := cl.Find(ctx, bson.D{})
 	if err != nil {
@@ -49,6 +47,8 @@ func AllUsers(cl *mongo.Collection) []User {
 	if err := cursor.Err(); err != nil {
 		log.Fatal(err)
 	}
+	cancel()
+
 	//returns the slice model
 	return Users
 }
@@ -59,14 +59,14 @@ func OneUser(cl *mongo.Collection, id primitive.ObjectID) User {
 	user := User{}
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//cancel de ctx, all jobs done
-	defer cancel()
 	//gets the patient related to id and decode to the pointe patient model
 	err := cl.FindOne(ctx, bson.M{"_id": id}).Decode(&user)
 	if err != nil {
 		cancel()
 		return user
 	}
+	//cancel de ctx, all jobs done
+	cancel()
 	//returns the patient
 	return user
 }
@@ -75,13 +75,13 @@ func OneUser(cl *mongo.Collection, id primitive.ObjectID) User {
 func CreateUser(cl *mongo.Collection, u User) {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//cancel de ctx, all jobs done
-	defer cancel()
 	//creates a new patient on the collection
 	_, err := cl.InsertOne(ctx, u)
 	if err != nil {
 		cancel()
 	}
+	//cancel de ctx, all jobs done
+	cancel()
 	//return
 }
 
@@ -89,13 +89,13 @@ func CreateUser(cl *mongo.Collection, u User) {
 func DeleteUser(cl *mongo.Collection, id primitive.ObjectID) {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//cancel de ctx, all jobs done
-	defer cancel()
 	//delete the patient from the collection
 	_, err := cl.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		cancel()
 	}
+	//cancel de ctx, all jobs done
+	cancel()
 	//return
 }
 
@@ -103,12 +103,12 @@ func DeleteUser(cl *mongo.Collection, id primitive.ObjectID) {
 func ModifyUser(cl *mongo.Collection, u []User) {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	//cancel de ctx, all jobs done
-	defer cancel()
 	//Replace the data on the collection
 	_, err := cl.ReplaceOne(ctx, bson.M{"_id": u[0].ID}, u[1])
 	if err != nil {
 		cancel()
 	}
+	//cancel de ctx, all jobs done
+	cancel()
 	//return
 }
