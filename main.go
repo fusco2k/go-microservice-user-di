@@ -18,11 +18,11 @@ func main() {
 	defer cl.Disconnect(context.Background())
 	env := &config.Env{CL: cl.Database("users").Collection("catalog")}
 	//routes
-	router.GET("/api/users", users.UserIndex(env))
-	// router.POST("/api/users")
-	// router.PUT("/api/users")
-	// router.DELETE("/api/users")
-	// router.GET("/api/users/:id", users.UserIndex(env))
+	router.GET("/api/users", users.Index(env))
+	router.POST("/api/users", users.Create(env))
+	router.PUT("/api/users", users.Modify(env))
+	router.DELETE("/api/users/:id", users.Delete(env))
+	router.GET("/api/users/:id", users.Get(env))
 	//server at port 8080 using httprouter as router
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
