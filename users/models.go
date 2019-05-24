@@ -72,43 +72,50 @@ func OneUser(cl *mongo.Collection, id primitive.ObjectID) User {
 }
 
 //CreateUser creates a user and returns the create user
-func CreateUser(cl *mongo.Collection, u User) {
+func CreateUser(cl *mongo.Collection, u User) primitive.ObjectID {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//creates a new patient on the collection
-	_, err := cl.InsertOne(ctx, u)
+	res, err := cl.InsertOne(ctx, u)
 	if err != nil {
 		cancel()
 	}
-	//return
+	//decode response
+	obj := res.InsertedID.(primitive.ObjectID)
+	//returns the objectID of the created user
+	return obj
 }
 
 //DeleteUser deletes the user of given id
-func DeleteUser(cl *mongo.Collection, id primitive.ObjectID) {
+func DeleteUser(cl *mongo.Collection, id primitive.ObjectID) int64 {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//delete the patient from the collection
-	_, err := cl.DeleteOne(ctx, bson.M{"_id": id})
+	res, err := cl.DeleteOne(ctx, bson.M{"_id": id})
 	if err != nil {
 		cancel()
 	}
-	//return
+	//return the number of deleted documents
+	return res.DeletedCount
 }
 
 //ModifyUser replace the user given on pos 0 from slice by the user on pos 1
-func ModifyUser(cl *mongo.Collection, u []User) {
+func ModifyUser(cl *mongo.Collection, u []User) primitive.ObjectID {
 	//creates a context with a timeout of 3 seconds
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	//cancel de ctx, all jobs done
 	defer cancel()
 	//Replace the data on the collection
-	_, err := cl.ReplaceOne(ctx, bson.M{"_id": u[0].ID}, u[1])
+	res, err := cl.ReplaceOne(ctx, bson.M{"_id": u[0].ID}, u[1])
 	if err != nil {
 		cancel()
 	}
-	//return
+	//decode response
+	obj := res.UpsertedID.(primitive.ObjectID)
+	//returns the objectID of the created user
+	return obj
 }
